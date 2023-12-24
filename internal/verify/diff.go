@@ -47,6 +47,7 @@ func SetTagsDiff(ctx context.Context, diff *schema.ResourceDiff, meta interface{
 		_, n := diff.GetChange("tags")
 		newTags := tftags.New(ctx, n.(map[string]interface{}))
 
+		fmt.Println("[Triage] diff.go func SetTagsDiff before SetNewComputed ,diff.Get(names.AttrTags)=", diff.Get(names.AttrTags))
 		fmt.Println("[Triage] diff.go func SetTagsDiff before SetNewComputed, diff.Get(names.AttrTagsAll)=", diff.Get(names.AttrTagsAll))
 		if newTags.HasZeroValue() {
 			fmt.Println("[Triage] diff.go newTags.HasZeroValue()=", newTags.HasZeroValue())
