@@ -24,16 +24,11 @@ import (
 func SetTagsDiff(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 	defaultTagsConfig := meta.(*conns.AWSClient).DefaultTagsConfig
 	ignoreTagsConfig := meta.(*conns.AWSClient).IgnoreTagsConfig
-	fmt.Println("[Triage] diff.go SetTagsDiff ,diff=", diff)
-	fmt.Println("[Triage] diff.go SetTagsDiff ,defaultTagsConfig=", defaultTagsConfig)
-	fmt.Println("[Triage] diff.go SetTagsDiff ,ignoreTagsConfig=", ignoreTagsConfig)
 
 	resourceTags := tftags.New(ctx, diff.Get("tags").(map[string]interface{}))
 
-	fmt.Println("[Triage] diff.go SetTagsDiff ,resourceTags=", resourceTags)
-
 	allTags := defaultTagsConfig.MergeTags(resourceTags).IgnoreConfig(ignoreTagsConfig)
-	fmt.Println("[Triage] diff.go SetTagsDiff ,allTags=", allTags)
+
 	// To ensure "tags_all" is correctly computed, we explicitly set the attribute diff
 	// when the merger of resource-level tags onto provider-level tags results in n > 0 tags,
 	// otherwise we mark the attribute as "Computed" only when there is a known diff (excluding an empty map)
@@ -49,38 +44,32 @@ func SetTagsDiff(ctx context.Context, diff *schema.ResourceDiff, meta interface{
 	}
 
 	if diff.HasChange("tags") {
-		fmt.Println("[Triage] diff.go line 51 SetTagsDiff ,diff.HasChange(\"tags\")=", diff.HasChange("tags"))
 		_, n := diff.GetChange("tags")
-		fmt.Println("[Triage] diff.go diff.GetChange ,n=", n)
 		newTags := tftags.New(ctx, n.(map[string]interface{}))
-		fmt.Println("[Triage] line 55 diff.go newTags)=", newTags)
 
-		fmt.Println("[Triage] diff.go before Set New Computed SetTagsDiff ,diff.Get(names.AttrTagsAll)=", diff.Get(names.AttrTagsAll))
+		fmt.Println("[Triage] diff.go func SetTagsDiff before SetNewComputed, diff.Get(names.AttrTagsAll)=", diff.Get(names.AttrTagsAll))
 		if newTags.HasZeroValue() {
 			fmt.Println("[Triage] diff.go newTags.HasZeroValue()=", newTags.HasZeroValue())
 			if err := diff.SetNewComputed("tags_all"); err != nil {
 				return fmt.Errorf("error setting tags_all to computed: %w", err)
 			}
 		}
-		fmt.Println("[Triage] diff.go after Set New Computed SetTagsDiff ,diff.Get(names.AttrTagsAll)=", diff.Get(names.AttrTagsAll))
-		fmt.Println("[Triage] diff.go after Set New Computed SetTagsDiff ,diff.Get(names.AttrTags)=", diff.Get(names.AttrTags))
+		fmt.Println("[Triage] diff.go func SetTagsDiff after SetNewComputed, diff.Get(names.AttrTagsAll)=", diff.Get(names.AttrTagsAll))
+		fmt.Println("[Triage] diff.go func SetTagsDiff after SetNewComputed ,diff.Get(names.AttrTags)=", diff.Get(names.AttrTags))
+
 		if len(allTags) > 0 && (!newTags.HasZeroValue() || !allTags.HasZeroValue()) {
-			fmt.Println("[Triage] diff.go SetTagsDiff ,len(allTags) > 0 && (!newTags.HasZeroValue() || !allTags.HasZeroValue())=", len(allTags) > 0 && (!newTags.HasZeroValue() || !allTags.HasZeroValue()))
 			if err := diff.SetNew("tags_all", allTags.Map()); err != nil {
 				return fmt.Errorf("error setting new tags_all diff: %w", err)
 			}
 		}
 
 		if len(allTags) == 0 {
-			fmt.Println("[Triage] diff.go SetTagsDiff ,len(allTags) == 0", len(allTags) == 0)
 			if err := diff.SetNewComputed("tags_all"); err != nil {
 				return fmt.Errorf("error setting tags_all to computed: %w", err)
 			}
 		}
 	} else if !diff.HasChange("tags") {
-		fmt.Println("[Triage] diff.go SetTagsDiff ,!diff.HasChange(\"tags\") ", !diff.HasChange("tags"))
 		if len(allTags) > 0 && !allTags.HasZeroValue() {
-			fmt.Println("[Triage] diff.go SetTagsDiff ,len(allTags) > 0 && !allTags.HasZeroValue()", len(allTags) > 0 && !allTags.HasZeroValue())
 			if err := diff.SetNew("tags_all", allTags.Map()); err != nil {
 				return fmt.Errorf("error setting new tags_all diff: %w", err)
 			}
@@ -89,41 +78,32 @@ func SetTagsDiff(ctx context.Context, diff *schema.ResourceDiff, meta interface{
 
 		var ta tftags.KeyValueTags
 		if tagsAll, ok := diff.Get("tags_all").(map[string]interface{}); ok {
-			fmt.Println("[Triage] diff.go SetTagsDiff line 90 ,tagsAll=", tagsAll)
 			ta = tftags.New(ctx, tagsAll)
-			fmt.Println("[Triage] diff.go SetTagsDiff ,ta=", ta)
 		}
 		if len(allTags) > 0 && !ta.DeepEqual(allTags) && allTags.HasZeroValue() {
-			fmt.Println("[Triage] diff.go SetTagsDiff ,len(allTags) > 0 && !ta.DeepEqual(allTags) && allTags.HasZeroValue()=", len(allTags) > 0 && !ta.DeepEqual(allTags) && allTags.HasZeroValue())
 			if err := diff.SetNewComputed("tags_all"); err != nil {
 				return fmt.Errorf("error setting tags_all to computed: %w", err)
 			}
 			return nil
 		}
 	} else if tagsAll, ok := diff.Get("tags_all").(map[string]interface{}); ok {
-		fmt.Println("[Triage] diff.go SetTagsDiff line 102,tagsAll=", tagsAll)
 		ta := tftags.New(ctx, tagsAll)
 		if !ta.DeepEqual(allTags) {
-			fmt.Println("[Triage] diff.go SetTagsDiff !ta.DeepEqual(allTags)=", !ta.DeepEqual(allTags))
 			if allTags.HasZeroValue() {
-				fmt.Println("[Triage] diff.go SetTagsDiff allTags.HasZeroValue()=", allTags.HasZeroValue())
 				if err := diff.SetNewComputed("tags_all"); err != nil {
 					return fmt.Errorf("error setting tags_all to computed: %w", err)
 				}
 			}
 		}
 	} else if len(diff.Get("tags_all").(map[string]interface{})) > 0 {
-		fmt.Println("[Triage] diff.go SetTagsDiff len(diff.Get(\"tags_all\").(map[string]interface{})) > 0=", len(diff.Get("tags_all").(map[string]interface{})) > 0)
 		if err := diff.SetNewComputed("tags_all"); err != nil {
 			return fmt.Errorf("error setting tags_all to computed: %w", err)
 		}
 	} else if diff.HasChange("tags_all") {
-		fmt.Println("[Triage] diff.go SetTagsDiff line 119 diff.HasChange(\"tags_all\")=", diff.HasChange("tags_all"))
 		if err := diff.SetNewComputed("tags_all"); err != nil {
 			return fmt.Errorf("error setting tags_all to computed: %w", err)
 		}
 	}
-	fmt.Println("[Triage] diff.go SetTagsDiff before nil")
 	return nil
 }
 
