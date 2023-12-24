@@ -492,6 +492,17 @@ func TestAccS3Bucket_Tags_withNoSystemTags(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccBucketConfig_updatedTagsWithNil(bucketName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBucketExists(ctx, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "XXX"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "EEE"),
+				),
+			},
+			{
 				Config: testAccBucketConfig_noTags(bucketName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBucketExists(ctx, resourceName),
@@ -4156,6 +4167,22 @@ resource "aws_s3_bucket" "test" {
 
   tags = {
     Key2 = "BBB"
+    Key3 = "XXX"
+    Key4 = "DDD"
+    Key5 = "EEE"
+  }
+}
+`, bucketName)
+}
+
+func testAccBucketConfig_updatedTagsWithNil(bucketName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket        = %[1]q
+  force_destroy = false
+
+  tags = {
+    Key2 = ""
     Key3 = "XXX"
     Key4 = "DDD"
     Key5 = "EEE"
